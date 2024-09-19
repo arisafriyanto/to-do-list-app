@@ -99,14 +99,6 @@ class ChecklistController extends Controller
 
     public function updateChecklistItem(Request $request, $checklistId, $checklistItemId)
     {
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
-        }
-
         $checklist = Checklist::find($checklistId);
         if (!$checklist) {
             return response()->json(['success' => false, 'errors' => 'Checklist not found'], 404);
@@ -117,7 +109,21 @@ class ChecklistController extends Controller
             return response()->json(['success' => false, 'errors' => 'Checklist item not found'], 404);
         }
 
-        $item->status = $request->status;
+        if ($request->itemName) {
+
+            $validator = Validator::make($request->all(), [
+                'itemName' => 'required|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            }
+
+            $item->item_name = $request->itemName;
+        } else {
+            $item->status = 1;
+        }
+
         $item->save();
 
         return response()->json(['success' => true, 'data' => $item, 'message' => 'Update checklist item success'], 200);
